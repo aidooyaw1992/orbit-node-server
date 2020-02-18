@@ -79,17 +79,19 @@ router.post('/pre_register_verify', (req, res) =>{
     }).then( attendee => {
         // console.log(attendee.dataValues);
         // return;
-        if(attendee.isVerified && attendee.preCode !== null && (
-            (!moment(value.dateAttended).diff(attendee.dateAttended1) > 1)) ||
-            (!moment(value.dateAttended).diff(attendee.dateAttended2) > 1) ||
-            (!moment(value.dateAttended).diff(attendee.dateAttended3) > 1)
+        if(attendee.isVerified && attendee.preCode !== null 
+            // && (
+            // (!moment(value.dateAttended).diff(attendee.dateAttended1) > 1)) ||
+            // (!moment(value.dateAttended).diff(attendee.dateAttended2) > 1) ||
+            // (!moment(value.dateAttended).diff(attendee.dateAttended3) > 1)
         ){
             res.status(200).json({message: 'Already Verified'});
         }else{
 
             //INCOMPLETE
-            //check for the date for verify
-            //if date2 must be > date1 && date3 must be > date2(not null)
+            // check for the date for verify
+            // if date2 must be > date1 && date3 must be > date2(not null)
+
             if(attendee.dateAttended1 !== null && moment(value.dateAttended).diff(attendee.dateAttended1) > 1){
                 attendee.dateAttended2 = value.dateAttended;
                 console.log("date2");
