@@ -1,0 +1,143 @@
+const Express =require('express');
+const router = Express.Router();
+const Joi = require('joi');
+var model = require('../models/index');
+const moment = require('moment');
+const csv = require('csv-parser');
+const fs = require('fs');
+
+
+router.get('/', (req, res) => {
+    model.Attendee.findAll({
+        include: [{
+                model: model.Event,
+                include:[
+                    {model: model.Location},
+                    {
+                        model: model.User,
+                        attributes: ['firstName', 'lastName']
+                    },
+                ]
+            }]
+    })
+    .then((attendees) => {
+        console.log(attendees);
+        res.json({
+            error: false,
+            data: attendees
+        })
+    }
+    ).catch(error => res.json({
+        error: true,
+        data: [],
+        error: error
+    })
+    );
+});
+
+router.post('/attendees_add',  (req, res) =>{
+
+    // define the validation schema
+    const schema  = Joi.object().keys({
+        fullName: Joi.string().required(),
+        email: Joi.string().email(),
+        position: Joi.string(),
+        phone: Joi.string(),
+        organization: Joi.string(),
+    });
+
+    const {err, value} = Joi.validate(req.body, schema);
+    if(err && err.details){
+        return res.status(400).json(err);
+    }
+
+    model.Attendee.create(value)
+        .then(attendee => res.status(201).json({
+            data: attendee,
+            message: 'New attendee has been created.'
+        })).catch(error => res.json({error: error})
+    );
+
+});
+
+router.post('/pre_register_verify', (req, res) =>{
+    /* *
+     * send 5 digit pin as request,
+     * finds that pin in the list of pre registered attendees and then update
+     * */
+    const schema = Joi.object().keys({
+        preCode: Joi.number().required().min(5).max(5)
+    });
+
+    const {err, value} = Joi.validate(req.body, schema);
+    if(err && err.details){
+        return res.status(400).json(err);
+    }
+
+    model.Attendee.findOne({
+        where: {preCode: value.preCode},
+    }).then( attendee => {
+        // console.log(attendee.dataValues);
+        // return;
+        if(attendee.isVerified && attendee.preCode !== null && (
+            (!moment(value.dateAttended).diff(attendee.dateAttended1) > 1)) ||
+            (!moment(value.dateAttended).diff(attendee.dateAttended2) > 1) ||
+            (!moment(value.dateAttended).diff(attendee.dateAttended3) > 1)
+        ){
+            res.status(200).json({message: 'Already Verified'});
+        }else{
+
+            //INCOMPLETE
+            //check for the date for verify
+            //if date2 must be > date1 && date3 must be > date2(not null)
+            if(attendee.dateAttended1 !== null && moment(value.dateAttended).diff(attendee.dateAttended1) > 1){
+                attendee.dateAttended2 = value.dateAttended;
+                console.log("date2");
+                console.log(attendee.dateAttended2);
+            }else if(attendee.dateAttended2 !== null && moment(value.dateAttended).diff(attendee.dateAttended2) > 1){
+                console.log("date3");
+                attendee.dateAttended3 = value.dateAttended;
+                console.log(attendee.dateAttended3);
+            }else{
+                console.log("date1");
+                attendee.dateAttended1 = value.dateAttended;
+                console.log(attendee.dateAttended1);
+            }
+            // return;
+            model.Attendee.update(
+                {
+                    preCode: value.preCode,
+                    dateAttended1: attendee.dateAttended1,
+                    dateAttended2: attendee.dateAttended2,
+                    dateAttended3: attendee.dateAttended3,
+                    eventId: value.eventId,
+                    isVerified: true
+                },
+                {
+                    where: {
+                        id: attendee.id
+                    }
+                }).then(updateRes =>{
+                res.status(200).json({data: updateRes});
+            }).catch(err => console.log(err));
+
+        }
+
+    }).catch(err => console.log(err));
+});
+
+router.get('/pre_register_bulk_insert', (req, res) =>{
+    // must be able to receive csv
+
+    fs.createReadStream('data.csv')
+        .pipe(csv())
+        .on('data', (row) =>{
+            console.log(row);
+        })
+        .on('end', ()=> {
+            console.log('CSV file successfully processed')
+        });
+    //must be able to receive json
+});
+
+module.exports = router;
