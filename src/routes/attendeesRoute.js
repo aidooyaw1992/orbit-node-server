@@ -5,33 +5,39 @@ var model = require('../models/index');
 const moment = require('moment');
 const csv = require('csv-parser');
 const fs = require('fs');
+const twilio = require('twilio');
+const dotenv= require('dotenv').config();
 
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.TWILIO_AUTH_TOKEN;
+const twilioClient = twilio(accountSid, authToken);
 
 router.get('/', (req, res) => {
     model.Attendee.findAll({
         include: [{
                 model: model.Event,
                 include:[
-                    {model: model.Location},
+                    {
+                        model: model.Location
+                    },
                     {
                         model: model.User,
-                        attributes: ['firstName', 'lastName']
+                        attributes: ['firstName', 'lastName'],
                     },
                 ]
             }]
     })
     .then((attendees) => {
-        console.log(attendees);
-        res.json({
+        console.log(accountSid);
+
+        return res.json({
             error: false,
             data: attendees
         })
-    }
-    ).catch(error => res.json({
-        error: true,
-        data: [],
-        error: error
-    })
+    }).catch(error => res.json({
+            error: true,
+            error: error
+        })
     );
 });
 
@@ -51,12 +57,37 @@ router.post('/attendees_add',  (req, res) =>{
         return res.status(400).json(err);
     }
 
-    model.Attendee.create(value)
-        .then(attendee => res.status(201).json({
-            data: attendee,
-            message: 'New attendee has been created.'
-        })).catch(error => res.json({error: error})
-    );
+    model.Event.findOne({
+        where: {id: value.eventId},
+    }).then(event => {
+        // console.log(event);
+        if(event != null){
+
+            model.Attendee.create(value)
+            .then(attendee => {
+
+                twilioClient.messages.create({
+                    body: `hi there ${attendee.fullName}, you have been successfully registered for the event ${event.name} on ${event.startDate}`,
+                    from: '+19727930249',
+                    to: value.phone
+                }).then(message => {
+                    console.log(message.sid);
+                }).catch(err => {
+                    console.log(err);
+                    return res.json(err);
+                });
+
+                res.status(201).json({
+                    data: attendee,
+                    message: 'New attendee has been created.'
+                });
+
+            }).catch(error => res.json({error: error}));
+
+        }else{
+            return res.status(400).json({message: "No event found"});
+        }
+    }).catch(err => res.json(err));
 
 });
 
@@ -66,30 +97,39 @@ router.post('/pre_register_verify', (req, res) =>{
      * finds that pin in the list of pre registered attendees and then update
      * */
     const schema = Joi.object().keys({
-        preCode: Joi.number().required().min(5).max(5)
+        preCode: Joi.string().required(),
+        dateAttended: Joi.string().required(),
+        eventId: Joi.number().integer().required()
     });
 
     const {err, value} = Joi.validate(req.body, schema);
+    console.log(value);
     if(err && err.details){
-        return res.status(400).json(err);
+        console.log(err);
+        return res.status(422).json(err);
     }
 
     model.Attendee.findOne({
-        where: {preCode: value.preCode},
+        where: {preCode: value.preCode, eventId: value.eventId},
     }).then( attendee => {
-        // console.log(attendee.dataValues);
-        // return;
-        if(attendee.isVerified && attendee.preCode !== null && (
-            (!moment(value.dateAttended).diff(attendee.dateAttended1) > 1)) ||
-            (!moment(value.dateAttended).diff(attendee.dateAttended2) > 1) ||
-            (!moment(value.dateAttended).diff(attendee.dateAttended3) > 1)
+
+        if(attendee == null){
+            return res.status(400).json({error:true, message: 'Attendee not found'});
+        }
+
+        if(attendee.isVerified && attendee.preCode !== null
+            // && (
+            // (!moment(value.dateAttended).diff(attendee.dateAttended1) > 1)) ||
+            // (!moment(value.dateAttended).diff(attendee.dateAttended2) > 1) ||
+            // (!moment(value.dateAttended).diff(attendee.dateAttended3) > 1)
         ){
-            res.status(200).json({message: 'Already Verified'});
+            res.status(400).json({error:true, message: 'Already Verified'});
         }else{
 
             //INCOMPLETE
-            //check for the date for verify
-            //if date2 must be > date1 && date3 must be > date2(not null)
+            // check for the date for verify
+            // if date2 must be > date1 && date3 must be > date2(not null)
+
             if(attendee.dateAttended1 !== null && moment(value.dateAttended).diff(attendee.dateAttended1) > 1){
                 attendee.dateAttended2 = value.dateAttended;
                 console.log("date2");
@@ -103,7 +143,7 @@ router.post('/pre_register_verify', (req, res) =>{
                 attendee.dateAttended1 = value.dateAttended;
                 console.log(attendee.dateAttended1);
             }
-            // return;
+
             model.Attendee.update(
                 {
                     preCode: value.preCode,
@@ -114,17 +154,28 @@ router.post('/pre_register_verify', (req, res) =>{
                     isVerified: true
                 },
                 {
-                    where: {
-                        id: attendee.id
-                    }
+                    where: {id: attendee.id}
                 }).then(updateRes =>{
-                res.status(200).json({data: updateRes});
-            }).catch(err => console.log(err));
-
+                    console.log(updateRes);
+                    return res.status(200).json({
+                        data: updateRes,
+                        message:`${attendee.fullName} is now verified`
+                    });
+            }).catch(error => {
+                console.log(error);
+                res.status(400).json(error);
+            });
         }
 
-    }).catch(err => console.log(err));
+    }).catch(error => {
+        console.log(error);
+        res.status(400).json(error);
+    });
 });
+
+
+
+
 
 router.get('/pre_register_bulk_insert', (req, res) =>{
     // must be able to receive csv
