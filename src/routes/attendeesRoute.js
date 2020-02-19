@@ -91,26 +91,33 @@ router.post('/pre_register_verify', (req, res) =>{
      * finds that pin in the list of pre registered attendees and then update
      * */
     const schema = Joi.object().keys({
-        preCode: Joi.number().required().min(5).max(5)
+        preCode: Joi.string().required(),
+        dateAttended: Joi.string().required(),
+        eventId: Joi.number().integer().required()
     });
 
     const {err, value} = Joi.validate(req.body, schema);
+    console.log(value);
     if(err && err.details){
-        return res.status(400).json(err);
+        console.log(err);
+        return res.status(422).json(err);
     }
 
     model.Attendee.findOne({
-        where: {preCode: value.preCode},
+        where: {preCode: value.preCode, eventId: value.eventId},
     }).then( attendee => {
-        // console.log(attendee.dataValues);
-        // return;
-        if(attendee.isVerified && attendee.preCode !== null 
+
+        if(attendee == null){
+            return res.status(400).json({error:true, message: 'Attendee not found'});
+        }
+
+        if(attendee.isVerified && attendee.preCode !== null
             // && (
             // (!moment(value.dateAttended).diff(attendee.dateAttended1) > 1)) ||
             // (!moment(value.dateAttended).diff(attendee.dateAttended2) > 1) ||
             // (!moment(value.dateAttended).diff(attendee.dateAttended3) > 1)
         ){
-            res.status(200).json({message: 'Already Verified'});
+            res.status(400).json({error:true, message: 'Already Verified'});
         }else{
 
             //INCOMPLETE
