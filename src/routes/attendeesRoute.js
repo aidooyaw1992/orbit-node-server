@@ -5,33 +5,39 @@ var model = require('../models/index');
 const moment = require('moment');
 const csv = require('csv-parser');
 const fs = require('fs');
+const twilio = require('twilio');
+const dotenv= require('dotenv').config();
 
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.TWILIO_AUTH_TOKEN;
+const twilioClient = twilio(accountSid, authToken);
 
 router.get('/', (req, res) => {
     model.Attendee.findAll({
         include: [{
                 model: model.Event,
                 include:[
-                    {model: model.Location},
+                    {
+                        model: model.Location
+                    },
                     {
                         model: model.User,
-                        attributes: ['firstName', 'lastName']
+                        attributes: ['firstName', 'lastName'],
                     },
                 ]
             }]
     })
     .then((attendees) => {
-        console.log(attendees);
-        res.json({
+        console.log(accountSid);
+
+        return res.json({
             error: false,
             data: attendees
         })
-    }
-    ).catch(error => res.json({
-        error: true,
-        data: [],
-        error: error
-    })
+    }).catch(error => res.json({
+            error: true,
+            error: error
+        })
     );
 });
 
@@ -137,7 +143,7 @@ router.post('/pre_register_verify', (req, res) =>{
                 attendee.dateAttended1 = value.dateAttended;
                 console.log(attendee.dateAttended1);
             }
-            // return;
+
             model.Attendee.update(
                 {
                     preCode: value.preCode,
@@ -148,17 +154,28 @@ router.post('/pre_register_verify', (req, res) =>{
                     isVerified: true
                 },
                 {
-                    where: {
-                        id: attendee.id
-                    }
+                    where: {id: attendee.id}
                 }).then(updateRes =>{
-                res.status(200).json({data: updateRes});
-            }).catch(err => console.log(err));
-
+                    console.log(updateRes);
+                    return res.status(200).json({
+                        data: updateRes,
+                        message:`${attendee.fullName} is now verified`
+                    });
+            }).catch(error => {
+                console.log(error);
+                res.status(400).json(error);
+            });
         }
 
-    }).catch(err => console.log(err));
+    }).catch(error => {
+        console.log(error);
+        res.status(400).json(error);
+    });
 });
+
+
+
+
 
 router.get('/pre_register_bulk_insert', (req, res) =>{
     // must be able to receive csv
