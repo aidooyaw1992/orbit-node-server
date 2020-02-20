@@ -28,7 +28,6 @@ router.get('/', (req, res) => {
             }]
     })
     .then((attendees) => {
-        console.log(accountSid);
 
         return res.json({
             error: false,
