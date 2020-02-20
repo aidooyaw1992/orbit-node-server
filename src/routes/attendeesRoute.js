@@ -47,6 +47,8 @@ router.post('/attendees_add',  (req, res) =>{
     const schema  = Joi.object().keys({
         fullName: Joi.string().required(),
         email: Joi.string().email(),
+        ownerId: Joi.number().integer().required(),
+        eventId: Joi.number().integer().required(),
         position: Joi.string(),
         phone: Joi.string(),
         organization: Joi.string(),
