@@ -66,23 +66,26 @@ router.post('/attendees_add',  (req, res) =>{
             model.Attendee.create(value)
             .then(attendee => {
 
-                twilioClient.messages.create({
-                    body: `hi there ${attendee.fullName}, you have been successfully registered for the event ${event.name} on ${event.startDate}`,
-                    from: '+19727930249',
-                    to: value.phone
-                }).then(message => {
-                    console.log(message.sid);
-                }).catch(err => {
-                    console.log(err);
-                    return res.json(err);
-                });
+                // twilioClient.messages.create({
+                //     body: `hi there ${attendee.fullName}, you have been successfully registered for the event ${event.name} on ${event.startDate}`,
+                //     from: '+19727930249',
+                //     to: value.phone
+                // }).then(message => {
+                //     console.log(message.sid);
+                // }).catch(err => {
+                //     console.log(err);
+                //     return res.json(err);
+                // });
 
                 res.status(201).json({
                     data: attendee,
                     message: 'New attendee has been created.'
                 });
 
-            }).catch(error => res.json({error: error}));
+            }).catch(error => {
+                console.log(error);
+                res.status(400).json({error: error});
+            });
 
         }else{
             return res.status(400).json({message: "No event found"});
