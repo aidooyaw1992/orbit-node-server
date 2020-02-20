@@ -42,12 +42,6 @@ module.exports = {
           type: Sequelize.STRING
         },
         amount: Sequelize.REAL,
-        heardAboutUs: {
-          type: Sequelize.TEXT
-        },
-        CountryOfResidence: {
-          type: Sequelize.STRING
-        },
         preCode: {
           type: Sequelize.STRING
         },
@@ -60,6 +54,12 @@ module.exports = {
         isVerified: {
           type: Sequelize.BOOLEAN,
           defaultValue: false
+        },
+        heardAboutUs: {
+          type: Sequelize.TEXT
+        },
+        CountryOfResidence: {
+          type: Sequelize.STRING
         },
         paid: {
           type: Sequelize.BOOLEAN,
