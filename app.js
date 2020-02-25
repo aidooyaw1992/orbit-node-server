@@ -3,13 +3,13 @@ var path = require('path');
 const bodyParser = require('body-parser');
 const logger = require('morgan');
 const hbs = require('express-handlebars');
-const attendeesRoute = require('./src/routes/attendeesRoute');
-const ownersRoute = require('./src/routes/ownersRoute');
-const authRoute = require('./src/routes/authentication');
-const eventsRoute = require('./src/routes/eventsRoute');
-const paymentsRoute = require('./src/routes/paymentsRoute');
-const locationsRoute = require('./src/routes/locationsRoute');
-const homeRoute = require('./src/routes/homeRoute');
+const attendeesRoute = require('./routes/attendeesRoute');
+const ownersRoute = require('./routes/ownersRoute');
+const authRoute = require('./routes/authentication');
+const eventsRoute = require('./routes/eventsRoute');
+const paymentsRoute = require('./routes/paymentsRoute');
+const locationsRoute = require('./routes/locationsRoute');
+const homeRoute = require('./routes/homeRoute');
 
 const app = express();
 
@@ -17,13 +17,13 @@ const app = express();
 app.engine('hbs', hbs({
     extname:'hbs',
     defaultLayout: 'layout',
-    layoutsDir: __dirname+ '/src/views/layouts/',
-    partialsDir: __dirname + '/src/views/partials/'
+    layoutsDir: __dirname+ '/views/layouts/',
+    partialsDir: __dirname + '/views/partials/'
 }));
 
-app.set('views', path.join(__dirname, 'src/views'));
+app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'hbs');
-app.use(express.static(path.join(__dirname, 'src/public')));
+app.use(express.static(path.join(__dirname, 'public')));
 
 //load app Midlleware
 app.use(logger('dev'));
