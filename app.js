@@ -9,20 +9,21 @@ const authRoute = require('./src/routes/authentication');
 const eventsRoute = require('./src/routes/eventsRoute');
 const paymentsRoute = require('./src/routes/paymentsRoute');
 const locationsRoute = require('./src/routes/locationsRoute');
+const homeRoute = require('./src/routes/homeRoute');
 
 const app = express();
 
 //load handlebars
 app.engine('hbs', hbs({
     extname:'hbs',
-    defaultLayout:'layout',
-    layoutsDir: __dirname+ '/views/layouts/',
-    partialsDir: __dirname + '/views/partials/'
+    defaultLayout: 'layout',
+    layoutsDir: __dirname+ '/src/views/layouts/',
+    partialsDir: __dirname + '/src/views/partials/'
 }));
 
-app.set('views', path.join(__dirname, 'views'));
+app.set('views', path.join(__dirname, 'src/views'));
 app.set('view engine', 'hbs');
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'src/public')));
 
 //load app Midlleware
 app.use(logger('dev'));
@@ -30,6 +31,8 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 //load routes
+app.use('/', homeRoute);
+
 app.use('/api/attendees', attendeesRoute);
 app.use('/api/owners', ownersRoute);
 app.use('/api/events', eventsRoute);
