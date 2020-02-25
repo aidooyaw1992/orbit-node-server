@@ -33,6 +33,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 //load routes
 app.use('/', homeRoute);
 
+
 app.use('/api/attendees', attendeesRoute);
 app.use('/api/owners', ownersRoute);
 app.use('/api/events', eventsRoute);
