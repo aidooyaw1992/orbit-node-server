@@ -1,4 +1,4 @@
-const Express =require('express');
+const Express = require('express');
 const router = Express.Router();
 const Joi = require('joi');
 var model = require('../models/index');
@@ -6,7 +6,7 @@ const moment = require('moment');
 const csv = require('csv-parser');
 const fs = require('fs');
 const twilio = require('twilio');
-const dotenv= require('dotenv').config();
+const dotenv = require('dotenv').config();
 
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
@@ -62,21 +62,23 @@ router.post('/attendees_add',  (req, res) =>{
         where: {id: value.eventId},
     }).then(event => {
         // console.log(event);
-        if(event != null){
+        if(event !== null){
 
             model.Attendee.create(value)
             .then(attendee => {
-
-                // twilioClient.messages.create({
-                //     body: `hi there ${attendee.fullName}, you have been successfully registered for the event ${event.name} on ${event.startDate}`,
-                //     from: '+19727930249',
-                //     to: value.phone
-                // }).then(message => {
-                //     console.log(message.sid);
-                // }).catch(err => {
-                //     console.log(err);
-                //     return res.json(err);
-                // });
+                /* 
+                    DO NOT DELETE
+                twilioClient.messages.create({
+                    body: `hi there ${attendee.fullName}, you have been successfully registered for the event ${event.name} on ${event.startDate}`,
+                    from: '+19727930249',
+                    to: value.phone
+                }).then(message => {
+                    console.log(message.sid);
+                }).catch(err => {
+                    console.log(err);
+                    return res.json(err);
+                }); 
+                */
 
                 res.status(201).json({
                     data: attendee,
@@ -94,6 +96,10 @@ router.post('/attendees_add',  (req, res) =>{
     }).catch(err => res.json(err));
 
 });
+
+function preCodeGen(low, high) {
+    return Math.floor(Math.random() * (high - low) + low)
+}
 
 router.post('/pre_register_verify', (req, res) =>{
     /* *
@@ -147,28 +153,54 @@ router.post('/pre_register_verify', (req, res) =>{
                 attendee.dateAttended1 = value.dateAttended;
                 console.log(attendee.dateAttended1);
             }
+            model.Event.findOne({
+                where: {id: value.eventId},
+            }).then(event => {
+                if(event !== null){
 
-            model.Attendee.update(
-                {
-                    preCode: value.preCode,
-                    dateAttended1: attendee.dateAttended1,
-                    dateAttended2: attendee.dateAttended2,
-                    dateAttended3: attendee.dateAttended3,
-                    eventId: value.eventId,
-                    isVerified: true
-                },
-                {
-                    where: {id: attendee.id}
-                }).then(updateRes =>{
-                    console.log(updateRes);
-                    return res.status(200).json({
-                        data: updateRes,
-                        message:`${attendee.fullName} is now verified`
+                    model.Attendee.update(
+                        {
+                            preCode: value.preCode,
+                            dateAttended1: attendee.dateAttended1,
+                            dateAttended2: attendee.dateAttended2,
+                            dateAttended3: attendee.dateAttended3,
+                            eventId: value.eventId,
+                            isVerified: true
+                        },
+                        {
+                            where: {id: attendee.id}
+                        }).then(updateRes =>{
+                            console.log(updateRes);
+
+                            /* 
+                                DO NOT DELETE
+                            twilioClient.messages.create({
+                                body: `hi there ${attendee.fullName}, you have been successfully registered for the event ${event.name} on ${event.startDate}`,
+                                from: '+19727930249',
+                                to: value.phone
+                            }).then(message => {
+                                console.log(message.sid);
+                            }).catch(err => {
+                                console.log(err);
+                                return res.json(err);
+                            }); 
+                            */
+
+                            return res.status(200).json({
+                                data: updateRes,
+                                message:`${attendee.fullName} is now verified`
+                            });
+                    }).catch(error => {
+                        console.log(error);
+                        res.status(400).json(error);
                     });
-            }).catch(error => {
-                console.log(error);
-                res.status(400).json(error);
+
+                }else{
+                    return res.status(400).json({message: "No event found"});
+                }
             });
+
+
         }
 
     }).catch(error => {
@@ -183,14 +215,20 @@ router.post('/pre_register_verify', (req, res) =>{
 
 router.get('/pre_register_bulk_insert', (req, res) =>{
     // must be able to receive csv
-
+    let data = Array();
     fs.createReadStream('data.csv')
         .pipe(csv())
-        .on('data', (row) =>{
+        .on('data', (row) => {
+            // data = row;
+            data.push(row);
             console.log(row);
         })
         .on('end', ()=> {
-            console.log('CSV file successfully processed')
+            data.forEach(row =>{
+                row['preCode'] = preCodeGen(10000,99999);
+            })
+            console.log('CSV file successfully processed:\n')
+            return res.status(200).json(data);
         });
     //must be able to receive json
 });
