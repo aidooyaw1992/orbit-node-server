@@ -7,6 +7,10 @@ module.exports = (sequelize, DataTypes) => {
       autoIncrement: true,
       primaryKey: true
   },
+    firstName: DataTypes.STRING,
+    lastName: DataTypes.STRING,
+    otherName: DataTypes.STRING,
+    nationality: DataTypes.STRING,
     fullName: DataTypes.STRING,
     email: {
       type: DataTypes.STRING,
@@ -20,12 +24,26 @@ module.exports = (sequelize, DataTypes) => {
     organization: DataTypes.STRING,
     preCode: DataTypes.STRING,
     eventId: DataTypes.INTEGER,
+    ownerId: DataTypes.INTEGER,
     dateAttended1: DataTypes.DATE,
     dateAttended2: DataTypes.DATE,
     dateAttended3: DataTypes.DATE,
     isVerified: {
       type: DataTypes.BOOLEAN,
       defaultValue: false
+    },
+    heardAboutUs: {
+      type: DataTypes.TEXT
+    },
+    CountryOfResidence: {
+      type: DataTypes.STRING
+    },
+    paid: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
+    },
+    macAddress: {
+      type: DataTypes.STRING
     },
     createdAt: {
       allowNull: false,
@@ -39,6 +57,7 @@ module.exports = (sequelize, DataTypes) => {
 
   Attendee.associate = function(models) {
     Attendee.belongsTo(models.Event,{foreignKey:'eventId'});
+    Attendee.belongsTo(models.User,{foreignKey:'ownerId'});
   };
 
   return Attendee;

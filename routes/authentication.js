@@ -43,14 +43,14 @@ router.post('/register',  (req, res) =>{
     }
 
     bcrypt.hash(value.password, saltRounds).then(hash => {
-        console.log(hash);
+        // console.log(hash);
         value.password = hash;
 
         model.User.create(value)
             .then(user => res.status(201).json({
                 data: user,
                 message: 'New user has been created.'
-            })).catch(error => res.json({error: error})
+            })).catch(error => res.status(400).json({error: error['errors']})
         );
 
     }).catch(err => console.log(err));

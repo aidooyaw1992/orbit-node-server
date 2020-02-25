@@ -3,19 +3,20 @@ var path = require('path');
 const bodyParser = require('body-parser');
 const logger = require('morgan');
 const hbs = require('express-handlebars');
-const attendeesRoute = require('./src/routes/attendeesRoute');
-const ownersRoute = require('./src/routes/ownersRoute');
-const authRoute = require('./src/routes/authentication');
-const eventsRoute = require('./src/routes/eventsRoute');
-const paymentsRoute = require('./src/routes/paymentsRoute');
-const locationsRoute = require('./src/routes/locationsRoute');
+const attendeesRoute = require('./routes/attendeesRoute');
+const ownersRoute = require('./routes/ownersRoute');
+const authRoute = require('./routes/authentication');
+const eventsRoute = require('./routes/eventsRoute');
+const paymentsRoute = require('./routes/paymentsRoute');
+const locationsRoute = require('./routes/locationsRoute');
+const homeRoute = require('./routes/homeRoute');
 
 const app = express();
 
 //load handlebars
 app.engine('hbs', hbs({
     extname:'hbs',
-    defaultLayout:'layout',
+    defaultLayout: 'layout',
     layoutsDir: __dirname+ '/views/layouts/',
     partialsDir: __dirname + '/views/partials/'
 }));
@@ -30,6 +31,9 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 //load routes
+app.use('/', homeRoute);
+
+
 app.use('/api/attendees', attendeesRoute);
 app.use('/api/owners', ownersRoute);
 app.use('/api/events', eventsRoute);
