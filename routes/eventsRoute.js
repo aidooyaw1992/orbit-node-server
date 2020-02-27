@@ -1,11 +1,12 @@
 const Express = require('express');
 var model = require('../models/index');
-const uploader = require('../handlers/multer');
+const {multerUploads, dataUri} = require('../handlers/multer');
 const Joi = require('joi');
 const router = Express.Router();
 const cloudinary = require('../handlers/cloudinary');
 const fs = require('fs');
 const path = require('path');
+
 
 router.get('/', (req, res)=>{
     model.Event.findAll({
