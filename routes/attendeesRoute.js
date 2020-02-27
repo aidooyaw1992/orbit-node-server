@@ -5,12 +5,9 @@ var model = require('../models/index');
 const moment = require('moment');
 const csv = require('csv-parser');
 const fs = require('fs');
-const twilio = require('twilio');
-const dotenv = require('dotenv').config();
 
-const accountSid = process.env.TWILIO_ACCOUNT_SID;
-const authToken = process.env.TWILIO_AUTH_TOKEN;
-const twilioClient = twilio(accountSid, authToken);
+const twilioClient = require('../handlers/twilio');
+
 
 router.get('/', (req, res) => {
     model.Attendee.findAll({
@@ -66,19 +63,17 @@ router.post('/attendees_add',  (req, res) =>{
 
             model.Attendee.create(value)
             .then(attendee => {
-                /* 
-                    DO NOT DELETE
-                twilioClient.messages.create({
-                    body: `hi there ${attendee.fullName}, you have been successfully registered for the event ${event.name} on ${event.startDate}`,
-                    from: '+19727930249',
-                    to: value.phone
-                }).then(message => {
-                    console.log(message.sid);
-                }).catch(err => {
-                    console.log(err);
-                    return res.json(err);
-                }); 
-                */
+
+                // twilioClient.messages.create({
+                //     body: `hi there ${attendee.fullName}, you have been successfully registered for the event ${event.name} on ${event.startDate}`,
+                //     from: '+19727930249',
+                //     to: value.phone
+                // }).then(message => {
+                //     console.log(message.sid);
+                // }).catch(err => {
+                //     console.log(err);
+                //     return res.json(err);
+                // });
 
                 res.status(201).json({
                     data: attendee,
@@ -172,19 +167,16 @@ router.post('/pre_register_verify', (req, res) =>{
                         }).then(updateRes =>{
                             console.log(updateRes);
 
-                            /* 
-                                DO NOT DELETE
-                            twilioClient.messages.create({
-                                body: `hi there ${attendee.fullName}, you have been successfully registered for the event ${event.name} on ${event.startDate}`,
-                                from: '+19727930249',
-                                to: value.phone
-                            }).then(message => {
-                                console.log(message.sid);
-                            }).catch(err => {
-                                console.log(err);
-                                return res.json(err);
-                            }); 
-                            */
+                            // twilioClient.messages.create({
+                            //     body: `hi there ${attendee.fullName}, you have been successfully registered for the event ${event.name} on ${event.startDate}`,
+                            //     from: '+19727930249',
+                            //     to: value.phone
+                            // }).then(message => {
+                            //     console.log(message.sid);
+                            // }).catch(err => {
+                            //     console.log(err);
+                            //     return res.json(err);
+                            // });
 
                             return res.status(200).json({
                                 data: updateRes,
