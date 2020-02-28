@@ -18,9 +18,12 @@ module.exports = {
         type: Sequelize.REAL
       },
       paymentType: {
-        type: Sequelize.ARRAY(Sequelize.ENUM),
-        values: ['CASH', 'MOMO', 'CARD']
+        type: Sequelize.STRING
       },
+      // paymentType: {
+      //   type: Sequelize.ARRAY(Sequelize.ENUM),
+      //   values: ['CASH', 'MOMO', 'CARD']
+      // },
       transactionNumber: {
         type: Sequelize.TEXT
       },
