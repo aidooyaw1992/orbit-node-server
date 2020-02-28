@@ -56,9 +56,9 @@ router.put('/add_image/:id', multerUploads,(req,res) =>{
                 const image = result.url;
                 console.log(image);
 
-                model.Event.update({
-                    imgUrl: image
-                }, {where: {id: eventId}}
+                model.Event.update(
+                    {imgUrl: image},
+                    {where: {id: eventId}}
                 ).then(updatedResult =>{
                     res.status(201).json({
                         message:'added image successfully',
