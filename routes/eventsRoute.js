@@ -23,7 +23,9 @@ router.get('/', (req, res)=>{
         });
     });
 });
+router.get('/get_all_images', (req, res) =>{
 
+});
 router.get('/clear_images', (req, res) =>{
     let imagePath=path.join(__dirname,'../uploads/');
     fs.readdir(imagePath, function(err, files) {
@@ -44,42 +46,34 @@ router.get('/clear_images', (req, res) =>{
 });
 
 
-router.post('/add_image', multerUploads,(req,res) =>{
-    if(req.file){
-        let file = dataUri(req).content;
-        return cloudinary.uploader.upload(file).then(result => {
-            const image = result.url;
-            console.log(image);
-            return res.status(200).json({
-                message:'saved succesfully',
-                data: result
-            })
-        }).catch(err => res.status(400).json(err));
-    }
-});
+router.put('/add_image/:id', multerUploads,(req,res) =>{
+    console.log(req.params.id);
+    let eventId = req.params.id;
+    model.Event.findByPk(eventId).then(event =>{
+        console.log(event);
+        if(event !== null && req.file){
+            let file = dataUri(req).content;
+            return cloudinary.uploader.upload(file).then(result => {
+                const image = result.url;
+                console.log(image);
 
-// router.post('/add_image', uploader.single('image'), (req, res) =>{
-//     console.log(req.file);
-//     cloudinary.uploader.upload(req.file.path)
-//     .then(uploadRes => {
-//         let imagePath=path.join(__dirname,'../uploads/');
-//         fs.readdir(imagePath, (err, files) =>{
-//             if (err) {
-//                 console.log("Error getting directory information.");
-//                 return res.send(err);
-//             }else{
-//                 let file = files[0];
-//                 console.log(file);
-//                 let imgPath = path.join(imagePath, file);
-//                 fs.unlinkSync(imgPath,function (err) {
-//                     if (err) return res.send(err);
-//                     console.log('File deleted!');
-//                 })
-//             }
-//         })
-//         res.status(200).send(uploadRes);
-//     }).catch(err => res.status(400).send(err));
-// });
+                model.Event.update({
+                    imgUrl: image
+                }, {where: {id: eventId}}
+                ).then(updatedResult =>{
+                    res.status(200).json({
+                        message:'saved succesfully',
+                        data: updatedResult
+                    })
+                }).catch(err => res.status(400).json(err));
+
+            }).catch(err => res.status(400).json(err));
+        }else{
+            return res.status(400).json("Event not found");
+        }
+    }).catch(err => res.send(err));
+
+});
 
 router.post('/add_event', (req, res) =>{
 
