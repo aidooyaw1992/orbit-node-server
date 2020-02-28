@@ -8,6 +8,7 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true
     },
     name: DataTypes.STRING,
+    imgUrl: DataTypes.STRING,
     startDate: DataTypes.DATE,
     endDate: DataTypes.DATE,
     createdAt: {
@@ -23,9 +24,9 @@ module.exports = (sequelize, DataTypes) => {
   }, {});
 
   Event.associate = function(models) {
-    Event.belongsTo(models.User,{foreignKey: 'ownerId'});
-    Event.belongsTo(models.Location,{foreignKey: 'locationId'});
-    Event.hasOne(models.Payment,{foreignKey: 'eventId'});
+    Event.hasOne(models.Payment,  {foreignKey: 'eventId'});
+    Event.belongsTo(models.User,  {foreignKey: 'ownerId'});
+    Event.belongsTo(models.Location,  {foreignKey: 'locationId'});
   };
 
   return Event;

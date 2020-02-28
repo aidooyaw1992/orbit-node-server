@@ -11,6 +11,9 @@ module.exports = {
       name: {
         type: Sequelize.STRING
       },
+      imgUrl: {
+        type: Sequelize.STRING
+      },
       locationId: {
         type: Sequelize.INTEGER
       },
