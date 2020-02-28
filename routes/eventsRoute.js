@@ -23,9 +23,8 @@ router.get('/', (req, res)=>{
         });
     });
 });
-router.get('/get_all_images', (req, res) =>{
 
-});
+
 router.get('/clear_images', (req, res) =>{
     let imagePath=path.join(__dirname,'../uploads/');
     fs.readdir(imagePath, function(err, files) {
@@ -61,8 +60,8 @@ router.put('/add_image/:id', multerUploads,(req,res) =>{
                     imgUrl: image
                 }, {where: {id: eventId}}
                 ).then(updatedResult =>{
-                    res.status(200).json({
-                        message:'saved succesfully',
+                    res.status(201).json({
+                        message:'added image successfully',
                         data: updatedResult
                     })
                 }).catch(err => res.status(400).json(err));
